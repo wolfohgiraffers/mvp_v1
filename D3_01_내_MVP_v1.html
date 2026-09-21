@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>화성정밀 생산일보 MVP v1</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    background: #f1f5f9;
+    color: #0f172a;
+    font-size: 18px;
+  }
+
+  .wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px 16px 64px;
+    box-sizing: border-box;
+  }
+
+  h1 {
+    font-size: 2rem;
+    margin: 0 0 8px;
+  }
+
+  .subtitle {
+    font-size: 1.05rem;
+    color: #475569;
+    margin: 0 0 24px;
+    line-height: 1.6;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    margin: 40px 0 16px;
+  }
+
+  section > h2:first-child {
+    margin-top: 0;
+  }
+
+  /* 화면 4종 전환 단추 — 장갑 끼고도 누를 수 있게 크게 */
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .tabs button {
+    margin: 0;
+    min-width: 0;
+    padding: 22px 12px;
+    font-size: 1.35rem;
+    background: #e2e8f0;
+    color: #334155;
+    border: 2px solid #cbd5e1;
+  }
+
+  .tabs button:hover {
+    background: #cbd5e1;
+  }
+
+  .tabs button.active {
+    background: #1d4ed8;
+    color: #ffffff;
+    border-color: #1d4ed8;
+  }
+
+  .card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+  }
+
+  label {
+    display: block;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .required {
+    color: #dc2626;
+  }
+
+  input, select {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 1.2rem;
+    padding: 14px;
+    border: 2px solid #94a3b8;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f172a;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: #1d4ed8;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: #1d4ed8;
+    border: none;
+    border-radius: 10px;
+    padding: 20px 48px;
+    margin-top: 28px;
+    cursor: pointer;
+    min-width: 220px;
+  }
+
+  button:hover {
+    background: #1e40af;
+  }
+
+  button.reset {
+    font-size: 1.15rem;
+    padding: 14px 28px;
+    min-width: 0;
+    margin-top: 20px;
+    background: #64748b;
+  }
+
+  button.reset:hover {
+    background: #475569;
+  }
+
+  #message {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    min-height: 1.6rem;
+  }
+
+  #message.error {
+    color: #dc2626;
+  }
+
+  #message.ok {
+    color: #15803d;
+  }
+
+  #csvMessage {
+    margin-top: 16px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+
+  #csvMessage.error {
+    color: #dc2626;
+  }
+
+  #csvMessage.ok {
+    color: #15803d;
+  }
+
+  #csvFile {
+    padding: 12px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    font-size: 1.05rem;
+  }
+
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 12px 10px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    background: #e2e8f0;
+    font-size: 1.1rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  th:hover {
+    background: #cbd5e1;
+  }
+
+  th .arrow {
+    color: #1d4ed8;
+    margin-left: 6px;
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+  }
+
+  .empty {
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    font-size: 1.15rem;
+    color: #475569;
+  }
+
+  .count {
+    margin: 0 0 12px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #334155;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .kpi {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 20px 24px;
+  }
+
+  .kpi .kpi-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #334155;
+  }
+
+  .kpi .kpi-scope {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  .kpi .kpi-value {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: #1d4ed8;
+    margin-top: 10px;
+  }
+
+  /* 관리자 지표(파랑)와 작업자 입력(초록)을 화면에서 구분한다 */
+  .role {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 20px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border-left: 8px solid;
+  }
+
+  .role-manager {
+    background: #eff6ff;
+    border-color: #1d4ed8;
+    color: #1e3a8a;
+  }
+
+  .role-worker {
+    background: #ecfdf5;
+    border-color: #047857;
+    color: #065f46;
+  }
+
+  .role-both {
+    background: #f8fafc;
+    border-color: #64748b;
+    color: #334155;
+  }
+
+  .group-title {
+    font-size: 1.2rem;
+    margin: 32px 0 12px;
+    padding-left: 12px;
+    border-left: 8px solid;
+  }
+
+  .group-title.manager {
+    border-color: #1d4ed8;
+    color: #1e3a8a;
+  }
+
+  .group-title.worker {
+    border-color: #047857;
+    color: #065f46;
+  }
+
+  .kpi.manager {
+    border-top: 6px solid #1d4ed8;
+  }
+
+  .kpi.worker {
+    border-top: 6px solid #047857;
+  }
+
+  .kpi.worker .kpi-value {
+    color: #047857;
+  }
+
+  .card.worker {
+    border-left: 8px solid #047857;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+
+  .badge.warn {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .badge.ok {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .badge.none {
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  tr.hot td {
+    color: #dc2626;
+    font-weight: 700;
+  }
+
+  /* 프레스 하루 기준 초과 — 빨간 바탕 (수업용 5% 빨간 글씨와 구분) */
+  tr.press-hot td {
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 700;
+  }
+
+  .card.limit {
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    border-left: 8px solid #b91c1c;
+  }
+
+  .limit-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .limit-row input {
+    width: 160px;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .limit-row button {
+    margin-top: 0;
+  }
+
+  .legend {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+  }
+
+  .legend.press {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .legend.class5 {
+    color: #dc2626;
+  }
+
+  .chart {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 16px;
+    overflow-x: auto;
+  }
+
+  .line-chart {
+    width: 100%;
+    min-width: 640px;
+    height: auto;
+    display: block;
+  }
+
+  .line-chart .grid {
+    stroke: #e2e8f0;
+    stroke-width: 1;
+  }
+
+  .line-chart .limit-line {
+    stroke: #b91c1c;
+    stroke-width: 2;
+    stroke-dasharray: 8 6;
+  }
+
+  .line-chart .line {
+    fill: none;
+    stroke: #1d4ed8;
+    stroke-width: 3;
+  }
+
+  .line-chart .dot {
+    fill: #1d4ed8;
+  }
+
+  .line-chart .dot.over {
+    fill: #dc2626;
+  }
+
+  .line-chart .value {
+    font-size: 15px;
+    font-weight: 700;
+    fill: #334155;
+  }
+
+  .line-chart .axis {
+    font-size: 14px;
+    fill: #475569;
+  }
+
+  .line-chart .axis.limit {
+    fill: #b91c1c;
+    font-weight: 700;
+  }
+
+  /* 공정별 · 일자별 표에서 프레스 기준 초과 칸 */
+  td.cell-hot {
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 700;
+  }
+
+  .note {
+    font-size: 1rem;
+    color: #475569;
+    margin: 12px 0 0;
+    line-height: 1.6;
+  }
+
+  .no-data {
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #475569;
+    font-size: 1.1rem;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>화성정밀 생산일보 MVP v1</h1>
+    <p class="subtitle">
+      저장은 이 브라우저 안(localStorage)에만 됩니다 — 다른 PC로 파일을 옮기면 데이터는 따라가지 않습니다.
+      인터넷으로 내보내는 것은 없습니다.
+    </p>
+
+    <!-- 기준값 칸 — 네 화면에 모두 쓰인다 -->
+    <div class="card limit">
+      <label for="pressLimit">프레스 하루 불량률 기준 (%)</label>
+      <div class="limit-row">
+        <input type="number" id="pressLimit" min="0" step="0.1" value="2.5">
+        <button type="button" class="reset" onclick="resetPressLimit()">기본값 2.5로</button>
+      </div>
+      <p class="note">
+        이 기준을 <strong>넘는(초과)</strong> 날의 프레스는 현황판과 목록에서 빨간색으로 표시합니다 (박 공장장 기준).
+        하루 = 그날 프레스 전체를 합해서 계산합니다. 바꾼 값은 이 브라우저에 기억됩니다.
+      </p>
+    </div>
+
+    <!-- 화면 4종 (요구사항서 ③칸) -->
+    <div class="tabs">
+      <button type="button" id="tabInput" class="active" onclick="showScreen('input')">입력</button>
+      <button type="button" id="tabList" onclick="showScreen('list')">목록</button>
+      <button type="button" id="tabSearch" onclick="showScreen('search')">검색</button>
+      <button type="button" id="tabBoard" onclick="showScreen('board')">현황판</button>
+    </div>
+
+    <!-- ===== 화면 1 · 입력 ===== -->
+    <section id="screenInput">
+      <h2>작업자 일보 입력</h2>
+      <p class="role role-worker">
+        작업자 · 반장이 쓰는 화면 — 현장에서 쓰는 말 그대로입니다. 종이 일보를 보고 적으십시오.
+        불량률 · 납기 같은 관리자 지표는 이 화면에 없습니다. [현황판]에 있습니다.
+      </p>
+      <div class="card worker">
+        <div class="fields">
+          <div>
+            <label for="workDate">일보 날짜 <span class="required">*</span></label>
+            <input type="date" id="workDate">
+          </div>
+          <div>
+            <label for="process">라인 <span class="required">*</span></label>
+            <select id="process">
+              <option value="">선택하세요</option>
+              <option value="프레스">프레스</option>
+              <option value="용접">용접</option>
+              <option value="도장">도장</option>
+            </select>
+          </div>
+          <div>
+            <label for="itemCode">품목코드 <span class="required">*</span></label>
+            <select id="itemCode">
+              <option value="">선택하세요</option>
+              <option value="BRK-101">BRK-101 브래킷</option>
+              <option value="ARM-220">ARM-220 컨트롤암</option>
+              <option value="PNL-330">PNL-330 사이드패널</option>
+            </select>
+          </div>
+          <div>
+            <label for="machine">기계</label>
+            <select id="machine">
+              <option value="">선택하세요</option>
+              <option value="P-01 프레스1호기">P-01 프레스1호기</option>
+              <option value="W-01 용접로봇1">W-01 용접로봇1</option>
+              <option value="C-01 도장부스1">C-01 도장부스1</option>
+            </select>
+          </div>
+          <div>
+            <label for="produced">생산 (수) <span class="required">*</span></label>
+            <input type="number" id="produced" min="0" step="1">
+          </div>
+          <div>
+            <label for="defects">NG</label>
+            <input type="number" id="defects" min="0" step="1" value="0">
+          </div>
+          <div>
+            <label for="worker">담당</label>
+            <input type="text" id="worker">
+          </div>
+          <div>
+            <label for="status">상태</label>
+            <select id="status">
+              <option value="">선택하세요</option>
+              <option value="정상">정상</option>
+              <option value="이상">이상</option>
+              <option value="재작업">재작업</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="button" onclick="register()">등록</button>
+        <div id="message"></div>
+      </div>
+
+      <h2>CSV 불러오기</h2>
+      <div class="card">
+        <label for="csvFile">생산일보 CSV 파일 (UTF-8 · EUC-KR 모두 가능)</label>
+        <input type="file" id="csvFile" accept=".csv,text/csv">
+        <p class="note">
+          필수 4열: 작업일자 · 공정 · 생산수량 · 불량수량 — 이 넷 중 하나라도 없을 때만 멈추고 어느 열인지 알려 드립니다.<br>
+          열 대응: 작업자 → 담당자. 품목코드 · 설비 · 상태는 파일에 있으면 받고, 없으면 비워 둡니다 — 값을 지어내지 않습니다.
+          품목명 · 비고는 입력 항목이 아니라 자료로만 보존합니다.<br>
+          CSV 한 행은 '그날 그 공정의 합계'이므로 같은 [작업일자 + 공정]은 중복으로 보고 건너뜁니다.<br>
+          정리 규칙: 작업일자는 2026-04-01 · 2026.4.1 · 4/1 · 20260401 을 모두 2026-04-01 로 맞춥니다(연도가 없으면 올해).
+          생산수량 · 불량수량은 숫자 뒤 단위 글자(EA · 개 · 공백)를 지웁니다.
+          빈칸은 0으로 채우지 않고 '미입력'으로 적고, 열 수가 머리글과 다른 행은 '열 수 오류'로 적어 집계에서 뺍니다.
+        </p>
+        <div id="csvMessage"></div>
+      </div>
+    </section>
+
+    <!-- ===== 화면 2 · 목록 ===== -->
+    <section id="screenList" hidden>
+      <h2>등록 목록 (전체)</h2>
+      <p class="role role-both">이 대리가 보는 화면 — 표준 용어에 현장에서 쓰는 말을 괄호로 함께 적었습니다.</p>
+      <p class="note" style="margin:0 0 16px">
+        색 표시 두 가지는 별개입니다 —
+        <span class="legend press">빨간 바탕</span> 그날 프레스 불량률이 화면 위 기준을 넘은 날의 프레스 행,
+        <span class="legend class5">빨간 글씨</span> 그 행의 불량률이 5% 이상(강사가 정한 수업용 표시 규칙).
+        열 제목을 누르면 정렬이 바뀝니다. 기본은 최신 일자순입니다.
+      </p>
+      <p class="count" id="listCount"></p>
+      <div class="empty" id="listEmpty">아직 등록된 생산일보가 없습니다.</div>
+      <div class="table-scroll" id="listScroll" hidden>
+        <table>
+          <thead><tr id="listHeaderRow"></tr></thead>
+          <tbody id="listBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== 화면 3 · 검색 ===== -->
+    <section id="screenSearch" hidden>
+      <h2>검색 · 필터</h2>
+      <div class="card">
+        <div class="fields">
+          <div>
+            <label for="filterDateFrom">작업일자(일보 날짜) 시작</label>
+            <input type="date" id="filterDateFrom">
+          </div>
+          <div>
+            <label for="filterDateTo">작업일자(일보 날짜) 끝</label>
+            <input type="date" id="filterDateTo">
+          </div>
+          <div>
+            <label for="filterProcess">공정(라인)</label>
+            <select id="filterProcess">
+              <option value="">전체</option>
+              <option value="프레스">프레스</option>
+              <option value="용접">용접</option>
+              <option value="도장">도장</option>
+            </select>
+          </div>
+          <div>
+            <label for="filterItemCode">품목코드</label>
+            <select id="filterItemCode">
+              <option value="">전체</option>
+              <option value="BRK-101">BRK-101 브래킷</option>
+              <option value="ARM-220">ARM-220 컨트롤암</option>
+              <option value="PNL-330">PNL-330 사이드패널</option>
+            </select>
+          </div>
+          <div>
+            <label for="filterWorker">작업자(담당)</label>
+            <input type="text" id="filterWorker" placeholder="이름 일부만 적어도 됩니다">
+          </div>
+          <div>
+            <label for="filterStatus">상태</label>
+            <select id="filterStatus">
+              <option value="">전체</option>
+              <option value="정상">정상</option>
+              <option value="이상">이상</option>
+              <option value="재작업">재작업</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="button" class="reset" onclick="resetFilters()">조건 지우기</button>
+        <p class="note">
+          조건은 여러 개를 동시에 걸 수 있습니다 — 기간(작업일자 시작~끝) · 공정 · 작업자 세 조건을 한 번에 겁니다.
+          품목코드 · 상태로 더 좁힐 수도 있습니다.
+        </p>
+      </div>
+
+      <h2>검색 결과</h2>
+      <p class="count" id="searchCount"></p>
+      <div class="empty" id="searchEmpty">아직 등록된 생산일보가 없습니다.</div>
+      <div class="table-scroll" id="searchScroll" hidden>
+        <table>
+          <thead><tr id="searchHeaderRow"></tr></thead>
+          <tbody id="searchBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== 화면 4 · 현황판 ===== -->
+    <section id="screenBoard" hidden>
+      <h2>현황판</h2>
+      <p class="role role-manager">김 대표 · 박 공장장이 보는 화면 — 사내 보고서와 같은 표준 용어만 씁니다.</p>
+
+      <p class="note" id="monthScope" style="margin:0 0 16px"></p>
+
+      <div class="cards">
+        <div class="kpi worker">
+          <div class="kpi-title" id="kpiProducedTitle">생산량</div>
+          <div class="kpi-scope">작업자 입력 합계</div>
+          <div class="kpi-value" id="kpiMonthProduced">—</div>
+        </div>
+        <div class="kpi manager">
+          <div class="kpi-title">불량률(%)</div>
+          <div class="kpi-scope">관리자 지표 · 불량수량 ÷ 생산수량 × 100</div>
+          <div class="kpi-value" id="kpiDefectRate">—</div>
+        </div>
+        <div class="kpi manager">
+          <div class="kpi-title">기준 초과 일수</div>
+          <div class="kpi-scope" id="kpiOverDaysScope">관리자 지표 · 프레스 하루 불량률</div>
+          <div class="kpi-value" id="kpiOverDays">—</div>
+        </div>
+      </div>
+      <p class="note" id="cleanupNote"></p>
+
+      <h2>공정별 · 일자별 불량률(%)</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr id="monthTableHead"></tr>
+          </thead>
+          <tbody id="monthTableBody"></tbody>
+          <tfoot id="monthTableFoot"></tfoot>
+        </table>
+      </div>
+      <div class="no-data" id="monthTableEmpty" hidden>등록된 자료가 없습니다.</div>
+      <p class="note">
+        <span class="legend press">빨간 칸</span> 그날 프레스 불량률이 화면 위 기준을 넘은 날(초과).
+        맨 아래 세 줄은 이 달 전체 합계와 현장 경고 판정입니다 —
+        경고 기준: 프레스 2.5% 이상 · 도장 3.0% 이상 (정한 사람: 박 공장장) · 용접은 기준 없음.
+        기준이 없는 공정은 판정하지 않고 '기준 없음'으로만 적습니다.
+      </p>
+
+      <h2>일자별 불량률(%) 꺾은선</h2>
+      <div class="chart" id="chart"></div>
+      <p class="note">
+        선은 그날 <strong>전체</strong> 불량률입니다. <span class="legend press">빨간 점</span>은 그날 프레스가 기준을 넘은 날입니다.
+        숫자는 등록된 자료에서만 계산합니다.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "hwaseongProductionLog";
+
+    // 입력 화면 안내말은 현장에서 쓰는 말로 (용어 사전: 작업자 화면 = 현장 용어)
+    const REQUIRED_FIELDS = [
+      { id: "workDate", label: "일보 날짜" },
+      { id: "process", label: "라인" },
+      { id: "itemCode", label: "품목코드" },
+      { id: "produced", label: "생산 (수)" }
+    ];
+
+    const NUMBER_FIELDS = [
+      { id: "produced", label: "생산 (수)" },
+      { id: "defects", label: "NG" }
+    ];
+
+    // 목록·검색은 둘 다 아는 사람(이 대리)이 보는 화면 — 표준 용어 + 괄호로 현장 용어
+    const COLUMNS = [
+      { key: "workDate", label: "작업일자(일보 날짜)", numeric: false },
+      { key: "process", label: "공정(라인)", numeric: false },
+      { key: "itemCode", label: "품목코드", numeric: false },
+      { key: "machine", label: "설비(기계)", numeric: false },
+      { key: "produced", label: "생산수량(생산)", numeric: true },
+      { key: "defects", label: "불량수량(NG)", numeric: true },
+      { key: "worker", label: "작업자(담당)", numeric: false },
+      { key: "status", label: "상태", numeric: false },
+      { key: "rate", label: "불량률(%)", numeric: true },
+      { key: "check", label: "정리", numeric: false }
+    ];
+
+    // CSV 정리 표시말 (② 표시 규칙)
+    const BLANK_MARK = "미입력";
+    const ROW_ERROR = "열 수 오류";
+
+    // ⑥칸 첫 줄 경고 기준 (정한 사람: 박 공장장). 용접은 기준이 없어 목록에 넣지 않는다.
+    const WARN_LIMITS = { "프레스": 2.5, "도장": 3.0 };
+    const PROCESS_ORDER = ["프레스", "용접", "도장"];
+
+    // 강사가 정한 수업용 표시 규칙 (경고 기준과 별개)
+    const CLASS_RED_LINE = 5;
+
+    // 프레스 하루 불량률 기준 — 화면 위에서 바꾼다. 기본 2.5, 넘으면(초과) 빨간색.
+    const PRESS_LIMIT_KEY = "hwaseongPressDailyLimit";
+    const PRESS_LIMIT_DEFAULT = 2.5;
+    const PRESS_PROCESS = "프레스";
+
+    // CSV 열 대응표 — 현장 CSV 5열(작업일자·공정·생산수량·불량수량·작업자) 기준
+    // 필수는 이 넷뿐. 이 중 하나라도 없으면 불러오지 않고 어느 열인지 알린다.
+    const CSV_REQUIRED = [
+      { header: "작업일자", key: "workDate" },
+      { header: "공정", key: "process" },
+      { header: "생산수량", key: "produced" },
+      { header: "불량수량", key: "defects" }
+    ];
+
+    // 있으면 받고 없으면 비워 두는 열. 값을 지어내지 않는다.
+    // '작업자'는 입력 항목 '담당자'에 연결한다.
+    const CSV_OPTIONAL = [
+      { header: "작업자", key: "worker" },
+      { header: "담당자", key: "worker" },
+      { header: "품목코드", key: "itemCode" },
+      { header: "설비", key: "machine" },
+      { header: "상태", key: "status" }
+    ];
+
+    // 입력하지 않고 보존만 하는 보조열
+    const CSV_EXTRA = [
+      { header: "품목명", key: "itemName" },
+      { header: "비고", key: "remark" }
+    ];
+
+    // CSV 한 행 = 그날 그 공정의 합계 → 중복 기준은 작업일자 + 공정
+    const CSV_KEYS = ["workDate", "process"];
+
+    const FILTER_IDS = ["filterDateFrom", "filterDateTo", "filterProcess", "filterWorker", "filterItemCode", "filterStatus"];
+
+    const SCREENS = [
+      { name: "input", section: "screenInput", tab: "tabInput" },
+      { name: "list", section: "screenList", tab: "tabList" },
+      { name: "search", section: "screenSearch", tab: "tabSearch" },
+      { name: "board", section: "screenBoard", tab: "tabBoard" }
+    ];
+
+    // 프레스 하루 기준을 넘은 날 (목록·검색 행 색칠에 쓴다)
+    let hotPressDates = [];
+
+    // 목록 화면과 검색 화면은 정렬 상태를 따로 가진다
+    const sortState = {
+      list: { key: "workDate", ascending: false },
+      search: { key: "workDate", ascending: false }
+    };
+
+    function showScreen(name) {
+      SCREENS.forEach(function (screen) {
+        document.getElementById(screen.section).hidden = screen.name !== name;
+        document.getElementById(screen.tab).className = screen.name === name ? "active" : "";
+      });
+    }
+
+    function loadRecords() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveRecords(records) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    /* ===== 프레스 하루 불량률 기준 ===== */
+
+    function pressLimit() {
+      const typed = Number(document.getElementById("pressLimit").value);
+      return isFinite(typed) && typed >= 0 ? typed : PRESS_LIMIT_DEFAULT;
+    }
+
+    function loadPressLimit() {
+      let saved;
+      try {
+        saved = localStorage.getItem(PRESS_LIMIT_KEY);
+      } catch (e) {
+        saved = null;
+      }
+      const value = Number(saved);
+      document.getElementById("pressLimit").value =
+        (saved !== null && isFinite(value) && value >= 0) ? value : PRESS_LIMIT_DEFAULT;
+    }
+
+    function savePressLimit() {
+      try {
+        localStorage.setItem(PRESS_LIMIT_KEY, String(pressLimit()));
+      } catch (e) {
+        // 저장이 막힌 브라우저에서도 화면은 그대로 동작한다
+      }
+    }
+
+    function resetPressLimit() {
+      document.getElementById("pressLimit").value = PRESS_LIMIT_DEFAULT;
+      savePressLimit();
+      refreshAll();
+    }
+
+    // 일자별 프레스 합계. 기준을 넘는(초과) 날만 빨간색으로 표시한다.
+    function pressDaily(records) {
+      const dates = [];
+      records.forEach(function (r) {
+        if (r.process === PRESS_PROCESS && dates.indexOf(r.workDate) === -1) dates.push(r.workDate);
+      });
+      dates.sort();
+
+      const limit = pressLimit();
+      return dates.map(function (date) {
+        const rows = records.filter(function (r) {
+          return r.process === PRESS_PROCESS && r.workDate === date;
+        });
+        const produced = rows.reduce(function (sum, r) { return sum + num(r.produced); }, 0);
+        const defects = rows.reduce(function (sum, r) { return sum + num(r.defects); }, 0);
+        const rate = defectRate(produced, defects);
+        return {
+          date: date,
+          produced: produced,
+          defects: defects,
+          rate: rate,
+          over: rate !== null && rate > limit
+        };
+      });
+    }
+
+    function pressHotDates(records) {
+      return pressDaily(records)
+        .filter(function (day) { return day.over; })
+        .map(function (day) { return day.date; });
+    }
+
+    /* ===== CSV 정리 규칙 (① 형식 통일) ===== */
+
+    function pad2(text) {
+      return String(Number(text)).padStart(2, "0");
+    }
+
+    // 2026-04-01 · 2026.4.1 · 4/1 · 20260401 을 모두 2026-04-01 로.
+    // 연도가 없으면 올해로. 알아볼 수 없는 값은 원문 그대로 둔다 (지어내지 않는다).
+    function normalizeDate(text) {
+      const value = (text || "").trim().replace(/\.$/, "");
+      if (value === "") return "";
+
+      let m = value.match(/^(\d{4})[-.\/\s]+(\d{1,2})[-.\/\s]+(\d{1,2})$/);
+      if (m) return m[1] + "-" + pad2(m[2]) + "-" + pad2(m[3]);
+
+      m = value.match(/^(\d{4})(\d{2})(\d{2})$/);
+      if (m) return m[1] + "-" + m[2] + "-" + m[3];
+
+      m = value.match(/^(\d{1,2})[-.\/\s]+(\d{1,2})$/);
+      if (m) return new Date().getFullYear() + "-" + pad2(m[1]) + "-" + pad2(m[2]);
+
+      return value;
+    }
+
+    // 숫자 뒤에 붙은 단위 글자(EA · 개 · 공백 · 쉼표)를 지운다.
+    // 숫자가 하나도 없으면 원문 그대로 둔다.
+    function normalizeNumber(text) {
+      const value = (text || "").trim();
+      if (value === "") return "";
+      const digits = value.replace(/[^\d.]/g, "");
+      return /^\d+(\.\d+)?$/.test(digits) ? digits : value;
+    }
+
+    // 합계용 — '미입력'처럼 숫자가 아닌 값은 0으로 더한다 (0으로 채워 저장하지는 않는다)
+    function num(value) {
+      const n = Number(value);
+      return isFinite(n) ? n : 0;
+    }
+
+    // 불량률 = 불량수량 ÷ 생산수량 × 100 (소수 1자리). 생산수량이 0이면 계산하지 않는다.
+    function defectRate(produced, defects) {
+      const p = Number(produced);
+      const d = Number(defects);
+      if (!isFinite(p) || !isFinite(d) || p <= 0) return null;
+      return d / p * 100;
+    }
+
+    function formatRate(rate) {
+      return rate === null ? "-" : rate.toFixed(1) + "%";
+    }
+
+    function weekRange(dateText) {
+      const date = new Date(dateText + "T00:00:00");
+      const offsetToMonday = (date.getDay() + 6) % 7;
+      const monday = new Date(date);
+      monday.setDate(date.getDate() - offsetToMonday);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      const text = function (d) {
+        return d.getFullYear() + "-" +
+          String(d.getMonth() + 1).padStart(2, "0") + "-" +
+          String(d.getDate()).padStart(2, "0");
+      };
+      return { from: text(monday), to: text(sunday) };
+    }
+    /* ===== 화면 4 · 현황판 ===== */
+
+    // 현황판은 등록된 자료 중 '가장 최근 달' 하나만 계산한다 (카드의 '4월'과 표·그래프를 같은 자료로 맞춘다)
+    function latestMonth(records) {
+      const months = records.map(function (r) { return String(r.workDate || "").slice(0, 7); })
+        .filter(function (m) { return /^\d{4}-\d{2}$/.test(m); });
+      return months.sort().pop() || "";
+    }
+
+    function monthLabel(month) {
+      return month === "" ? "" : Number(month.slice(0, 4)) + "년 " + Number(month.slice(5, 7)) + "월";
+    }
+
+    function renderDashboard(allRecords) {
+      // 열 수 오류 행은 집계에서 뺀다
+      const valid = allRecords.filter(function (r) { return r.check !== ROW_ERROR; });
+
+      const blankRows = allRecords.filter(function (r) { return r.check === BLANK_MARK; }).length;
+      const errorRows = allRecords.length - valid.length;
+      document.getElementById("cleanupNote").textContent =
+        "정리 결과 — 미입력 " + blankRows + "행 · 열 수 오류 " + errorRows + "행" +
+        " (열 수 오류 행은 위 숫자에서 뺐습니다. 미입력 칸은 0으로 채우지 않았습니다.)";
+
+      const month = latestMonth(valid);
+      const records = valid.filter(function (r) { return String(r.workDate || "").slice(0, 7) === month; });
+      const label = monthLabel(month);
+
+      document.getElementById("kpiProducedTitle").textContent = (label === "" ? "" : label + " ") + "생산량";
+      document.getElementById("monthScope").textContent = month === ""
+        ? "등록된 자료가 없습니다."
+        : "현황판은 " + label + " 자료만 계산합니다 (등록된 자료 중 가장 최근 달). " +
+          "이 달 " + records.length + "건 / 집계 대상 전체 " + valid.length + "건.";
+
+      if (records.length === 0) {
+        document.getElementById("kpiMonthProduced").textContent = "-";
+        document.getElementById("kpiDefectRate").textContent = "-";
+        document.getElementById("kpiOverDays").textContent = "-";
+        document.getElementById("monthTableHead").innerHTML = "";
+        document.getElementById("monthTableBody").innerHTML = "";
+        document.getElementById("monthTableFoot").innerHTML = "";
+        document.getElementById("monthTableEmpty").hidden = false;
+        document.getElementById("chart").innerHTML =
+          '<div class="no-data">등록된 자료가 없어 그래프를 그릴 수 없습니다.</div>';
+        return;
+      }
+
+      // 카드 ① 생산량
+      const totalProduced = records.reduce(function (sum, r) { return sum + num(r.produced); }, 0);
+      document.getElementById("kpiMonthProduced").textContent = totalProduced.toLocaleString("ko-KR");
+
+      // 카드 ② 불량률
+      const totalDefects = records.reduce(function (sum, r) { return sum + num(r.defects); }, 0);
+      document.getElementById("kpiDefectRate").textContent = formatRate(defectRate(totalProduced, totalDefects));
+
+      // 카드 ③ 프레스 하루 불량률이 기준을 넘은(초과) 날 수
+      const days = pressDaily(records);
+      const overDays = days.filter(function (day) { return day.over; }).length;
+      document.getElementById("kpiOverDays").textContent = overDays + "일";
+      document.getElementById("kpiOverDaysScope").textContent =
+        "관리자 지표 · 프레스 하루 불량률 " + pressLimit().toFixed(1) + "% 초과 (전체 " + days.length + "일 중)";
+
+      renderMonthTable(records);
+      renderChart(records);
+    }
+
+    // 공정별 · 일자별을 한 표로. 행 = 작업일자, 열 = 공정, 맨 아래 = 이 달 합계와 경고 판정.
+    function renderMonthTable(records) {
+      const head = document.getElementById("monthTableHead");
+      const body = document.getElementById("monthTableBody");
+      const foot = document.getElementById("monthTableFoot");
+      head.innerHTML = "";
+      body.innerHTML = "";
+      foot.innerHTML = "";
+      document.getElementById("monthTableEmpty").hidden = true;
+
+      const names = PROCESS_ORDER.filter(function (name) {
+        return records.some(function (r) { return r.process === name; });
+      });
+
+      ["작업일자"].concat(names, ["그날 전체"]).forEach(function (text) {
+        const th = document.createElement("th");
+        th.textContent = text;
+        th.style.cursor = "default";
+        head.appendChild(th);
+      });
+
+      const dates = [];
+      records.forEach(function (r) {
+        if (dates.indexOf(r.workDate) === -1) dates.push(r.workDate);
+      });
+      dates.sort();
+
+      const limit = pressLimit();
+
+      const sumOf = function (rows) {
+        const produced = rows.reduce(function (sum, r) { return sum + num(r.produced); }, 0);
+        const defects = rows.reduce(function (sum, r) { return sum + num(r.defects); }, 0);
+        return { produced: produced, defects: defects, rate: defectRate(produced, defects) };
+      };
+
+      dates.forEach(function (date) {
+        const tr = document.createElement("tr");
+
+        const dateTd = document.createElement("td");
+        dateTd.textContent = date;
+        tr.appendChild(dateTd);
+
+        names.forEach(function (name) {
+          const cell = sumOf(records.filter(function (r) {
+            return r.workDate === date && r.process === name;
+          }));
+          const td = document.createElement("td");
+          td.textContent = formatRate(cell.rate);
+          // 프레스 하루 기준 초과 칸만 빨간색
+          if (name === PRESS_PROCESS && cell.rate !== null && cell.rate > limit) {
+            td.className = "cell-hot";
+          }
+          tr.appendChild(td);
+        });
+
+        const allTd = document.createElement("td");
+        allTd.textContent = formatRate(sumOf(records.filter(function (r) { return r.workDate === date; })).rate);
+        tr.appendChild(allTd);
+
+        body.appendChild(tr);
+      });
+
+      const totals = names.map(function (name) {
+        return sumOf(records.filter(function (r) { return r.process === name; }));
+      });
+      const monthTotal = sumOf(records);
+
+      const footRow = function (label, cells) {
+        const tr = document.createElement("tr");
+        const th = document.createElement("th");
+        th.textContent = label;
+        th.style.cursor = "default";
+        tr.appendChild(th);
+        cells.forEach(function (node) {
+          const td = document.createElement("td");
+          if (typeof node === "string") td.textContent = node;
+          else td.appendChild(node);
+          tr.appendChild(td);
+        });
+        foot.appendChild(tr);
+      };
+
+      footRow("이 달 생산수량",
+        totals.map(function (t) { return t.produced.toLocaleString("ko-KR"); })
+          .concat([monthTotal.produced.toLocaleString("ko-KR")]));
+
+      footRow("이 달 불량수량",
+        totals.map(function (t) { return t.defects.toLocaleString("ko-KR"); })
+          .concat([monthTotal.defects.toLocaleString("ko-KR")]));
+
+      footRow("이 달 불량률",
+        totals.map(function (t) { return formatRate(t.rate); })
+          .concat([formatRate(monthTotal.rate)]));
+
+      footRow("경고 기준",
+        names.map(function (name) {
+          const warn = WARN_LIMITS[name];
+          return warn === undefined ? "기준 없음" : warn.toFixed(1) + "% 이상";
+        }).concat(["-"]));
+
+      footRow("판정", names.map(function (name, i) {
+        const warn = WARN_LIMITS[name];
+        const rate = totals[i].rate;
+        const badge = document.createElement("span");
+        if (warn === undefined || rate === null) {
+          badge.className = "badge none";
+          badge.textContent = "기준 없음";
+        } else if (rate >= warn) {
+          badge.className = "badge warn";
+          badge.textContent = "경고";
+        } else {
+          badge.className = "badge ok";
+          badge.textContent = "정상";
+        }
+        return badge;
+      }).concat(["-"]));
+    }
+
+    // 일자별 불량률 꺾은선 — 외부 라이브러리 없이 SVG로 직접 그린다
+    function renderChart(records) {
+      const chart = document.getElementById("chart");
+      chart.innerHTML = "";
+
+      const dates = [];
+      records.forEach(function (r) {
+        if (dates.indexOf(r.workDate) === -1) dates.push(r.workDate);
+      });
+      dates.sort();
+
+      const overDates = pressHotDates(records);
+
+      const points = dates.map(function (date) {
+        const rows = records.filter(function (r) { return r.workDate === date; });
+        const produced = rows.reduce(function (sum, r) { return sum + num(r.produced); }, 0);
+        const defects = rows.reduce(function (sum, r) { return sum + num(r.defects); }, 0);
+        return { date: date, rate: defectRate(produced, defects), over: overDates.indexOf(date) !== -1 };
+      });
+
+      const width = 900;
+      const height = 300;
+      const padLeft = 70;
+      const padRight = 30;
+      const padTop = 30;
+      const padBottom = 60;
+
+      const maxRate = points.reduce(function (max, p) {
+        return p.rate !== null && p.rate > max ? p.rate : max;
+      }, 0);
+      const top = maxRate === 0 ? 1 : Math.ceil(maxRate * 1.25 * 10) / 10;
+
+      const x = function (i) {
+        if (points.length === 1) return padLeft + (width - padLeft - padRight) / 2;
+        return padLeft + i * (width - padLeft - padRight) / (points.length - 1);
+      };
+      const y = function (rate) {
+        return padTop + (1 - rate / top) * (height - padTop - padBottom);
+      };
+
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+      svg.setAttribute("class", "line-chart");
+
+      const add = function (tag, attrs, text) {
+        const node = document.createElementNS(svgNS, tag);
+        Object.keys(attrs).forEach(function (key) { node.setAttribute(key, attrs[key]); });
+        if (text !== undefined) node.textContent = text;
+        svg.appendChild(node);
+        return node;
+      };
+
+      // 가로 눈금 (0 · 중간 · 위)
+      [0, top / 2, top].forEach(function (value) {
+        const yy = y(value);
+        add("line", { x1: padLeft, y1: yy, x2: width - padRight, y2: yy, class: "grid" });
+        add("text", { x: padLeft - 12, y: yy + 5, class: "axis", "text-anchor": "end" }, value.toFixed(1) + "%");
+      });
+
+      // 기준선 — 프레스 하루 기준
+      const limit = pressLimit();
+      if (limit <= top) {
+        add("line", { x1: padLeft, y1: y(limit), x2: width - padRight, y2: y(limit), class: "limit-line" });
+        add("text", { x: width - padRight, y: y(limit) - 8, class: "axis limit", "text-anchor": "end" },
+          "프레스 기준 " + limit.toFixed(1) + "%");
+      }
+
+      // 꺾은선
+      const drawn = points.filter(function (p) { return p.rate !== null; });
+      if (drawn.length > 1) {
+        add("polyline", {
+          class: "line",
+          points: points.map(function (p, i) {
+            return p.rate === null ? "" : x(i) + "," + y(p.rate);
+          }).filter(function (s) { return s !== ""; }).join(" ")
+        });
+      }
+
+      points.forEach(function (p, i) {
+        if (p.rate === null) return;
+        add("circle", { cx: x(i), cy: y(p.rate), r: p.over ? 7 : 5, class: p.over ? "dot over" : "dot" });
+        add("text", { x: x(i), y: y(p.rate) - 14, class: "value", "text-anchor": "middle" }, formatRate(p.rate));
+        add("text", { x: x(i), y: height - padBottom + 24, class: "axis", "text-anchor": "middle" }, p.date.slice(5));
+      });
+
+      chart.appendChild(svg);
+    }
+
+
+    /* ===== 화면 2 · 목록 / 화면 3 · 검색 ===== */
+
+    function applyFilters(records) {
+      const from = document.getElementById("filterDateFrom").value;
+      const to = document.getElementById("filterDateTo").value;
+      const process = document.getElementById("filterProcess").value;
+      const worker = document.getElementById("filterWorker").value.trim();
+      const itemCode = document.getElementById("filterItemCode").value;
+      const status = document.getElementById("filterStatus").value;
+
+      return records.filter(function (record) {
+        if (from !== "" && record.workDate < from) return false;
+        if (to !== "" && record.workDate > to) return false;
+        if (process !== "" && record.process !== process) return false;
+        // 작업자는 이름 일부만 적어도 찾아지게 (포함 검색)
+        if (worker !== "" && (record.worker || "").indexOf(worker) === -1) return false;
+        if (itemCode !== "" && record.itemCode !== itemCode) return false;
+        if (status !== "" && record.status !== status) return false;
+        return true;
+      });
+    }
+
+    function sortRecords(records, state) {
+      const column = COLUMNS.find(function (c) { return c.key === state.key; });
+      const direction = state.ascending ? 1 : -1;
+
+      return records.slice().sort(function (a, b) {
+        if (state.key === "rate") {
+          const leftRate = defectRate(a.produced, a.defects);
+          const rightRate = defectRate(b.produced, b.defects);
+          if (leftRate === null && rightRate === null) return 0;
+          if (leftRate === null) return 1;
+          if (rightRate === null) return -1;
+          return (leftRate - rightRate) * direction;
+        }
+        const left = a[state.key] || "";
+        const right = b[state.key] || "";
+        if (column.numeric) {
+          return (num(left) - num(right)) * direction;
+        }
+        return left.localeCompare(right, "ko") * direction;
+      });
+    }
+
+    function renderHeader(rowId, which) {
+      const row = document.getElementById(rowId);
+      const state = sortState[which];
+      row.innerHTML = "";
+      COLUMNS.forEach(function (column) {
+        const th = document.createElement("th");
+        th.textContent = column.label;
+        if (column.key === state.key) {
+          const arrow = document.createElement("span");
+          arrow.className = "arrow";
+          arrow.textContent = state.ascending ? "▲" : "▼";
+          th.appendChild(arrow);
+        }
+        th.onclick = function () { changeSort(which, column.key); };
+        row.appendChild(th);
+      });
+    }
+
+    function changeSort(which, key) {
+      const state = sortState[which];
+      if (state.key === key) {
+        state.ascending = !state.ascending;
+      } else {
+        state.key = key;
+        state.ascending = true;
+      }
+      refreshAll();
+    }
+
+    // 목록·검색 두 표를 같은 방법으로 그린다
+    function renderTable(which, ids, rows, totalCount, emptyText) {
+      const body = document.getElementById(ids.body);
+      body.innerHTML = "";
+
+      rows.forEach(function (record) {
+        const rate = defectRate(record.produced, record.defects);
+        const tr = document.createElement("tr");
+        const marks = [];
+        // 수업용 표시 규칙: 불량률 5% 이상이면 빨간 글씨
+        if (rate !== null && rate >= CLASS_RED_LINE) marks.push("hot");
+        // 프레스 하루 기준 초과: 그날 프레스 행을 빨간 바탕으로
+        if (record.process === PRESS_PROCESS && hotPressDates.indexOf(record.workDate) !== -1) {
+          marks.push("press-hot");
+        }
+        tr.className = marks.join(" ");
+        COLUMNS.forEach(function (column) {
+          const td = document.createElement("td");
+          td.textContent = column.key === "rate" ? formatRate(rate) : (record[column.key] || "");
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+
+      renderHeader(ids.header, which);
+
+      const empty = document.getElementById(ids.empty);
+      empty.textContent = totalCount === 0 ? "아직 등록된 생산일보가 없습니다." : emptyText;
+      empty.hidden = rows.length > 0;
+      document.getElementById(ids.scroll).hidden = rows.length === 0;
+      document.getElementById(ids.count).textContent =
+        which === "list"
+          ? "전체 " + totalCount + "건"
+          : "전체 " + totalCount + "건 중 " + rows.length + "건";
+    }
+
+    function refreshAll() {
+      const all = loadRecords();
+
+      // 열 수 오류 행은 기준 계산에서 뺀다 (현황판과 같은 자료로 판정)
+      hotPressDates = pressHotDates(all.filter(function (r) { return r.check !== ROW_ERROR; }));
+
+      renderTable(
+        "list",
+        { body: "listBody", header: "listHeaderRow", empty: "listEmpty", scroll: "listScroll", count: "listCount" },
+        sortRecords(all, sortState.list),
+        all.length,
+        ""
+      );
+
+      renderTable(
+        "search",
+        { body: "searchBody", header: "searchHeaderRow", empty: "searchEmpty", scroll: "searchScroll", count: "searchCount" },
+        sortRecords(applyFilters(all), sortState.search),
+        all.length,
+        "조건에 맞는 생산일보가 없습니다."
+      );
+
+      renderDashboard(all);
+    }
+
+    function resetFilters() {
+      FILTER_IDS.forEach(function (id) {
+        document.getElementById(id).value = "";
+      });
+      refreshAll();
+    }
+
+    /* ===== CSV 불러오기 ===== */
+
+    // UTF-8로 먼저 읽고, 깨지면 EUC-KR로 다시 읽는다
+    function decodeText(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let text;
+      try {
+        text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+      } catch (e) {
+        text = new TextDecoder("euc-kr").decode(bytes);
+      }
+      return text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text;
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (inQuotes) {
+          if (ch === '"') {
+            if (text[i + 1] === '"') { field += '"'; i++; }
+            else { inQuotes = false; }
+          } else {
+            field += ch;
+          }
+        } else if (ch === '"') {
+          inQuotes = true;
+        } else if (ch === ",") {
+          row.push(field); field = "";
+        } else if (ch === "\n") {
+          row.push(field); rows.push(row); row = []; field = "";
+        } else if (ch !== "\r") {
+          field += ch;
+        }
+      }
+      if (field !== "" || row.length > 0) { row.push(field); rows.push(row); }
+
+      return rows.filter(function (r) {
+        return r.some(function (cell) { return cell.trim() !== ""; });
+      });
+    }
+
+    function showCsvMessage(text, type) {
+      const el = document.getElementById("csvMessage");
+      el.textContent = text;
+      el.className = type;
+    }
+
+    function importCsv(file) {
+      const reader = new FileReader();
+
+      reader.onload = function () {
+        const rows = parseCsv(decodeText(reader.result));
+
+        if (rows.length < 2) {
+          showCsvMessage("CSV에 자료 줄이 없습니다. 불러오지 않았습니다.", "error");
+          return;
+        }
+
+        const headers = rows[0].map(function (h) { return h.trim(); });
+
+        const missing = CSV_REQUIRED.filter(function (column) {
+          return headers.indexOf(column.header) === -1;
+        });
+
+        // 필수 네 열 중 없는 것이 있을 때만 멈춘다 — 빠진 열만 알리고 내용을 지어내지 않는다
+        if (missing.length > 0) {
+          const names = missing.map(function (column) { return column.header; }).join(", ");
+          showCsvMessage(
+            "필수 열이 없어 불러오지 않았습니다 — 빠진 열: " + names +
+            " (필수 열: 작업일자 · 공정 · 생산수량 · 불량수량)",
+            "error"
+          );
+          return;
+        }
+
+        const records = loadRecords();
+        const signatureOf = function (record) {
+          return CSV_KEYS.map(function (key) { return record[key] || ""; }).join("|");
+        };
+        const seen = records.map(signatureOf);
+
+        // 없는 열은 비워 둔다 (품목코드 · 설비 · 상태 등)
+        const blank = {};
+        CSV_REQUIRED.concat(CSV_OPTIONAL, CSV_EXTRA).forEach(function (column) {
+          blank[column.key] = "";
+        });
+
+        let added = 0;
+        let skipped = 0;
+        let blankRows = 0;
+        let errorRows = 0;
+
+        rows.slice(1).forEach(function (row) {
+          const record = Object.assign({}, blank);
+          let hasBlank = false;
+
+          CSV_REQUIRED.concat(CSV_OPTIONAL, CSV_EXTRA).forEach(function (column) {
+            const index = headers.indexOf(column.header);
+            if (index === -1) return;               // 파일에 없는 열은 비워 둔다
+            const raw = (row[index] === undefined ? "" : row[index]).trim();
+
+            // ② 빈칸은 0으로 채우지 않고 '미입력'으로 표시한다
+            if (raw === "") {
+              if (record[column.key] === "") record[column.key] = BLANK_MARK;
+              hasBlank = true;
+              return;
+            }
+
+            // ① 형식 통일
+            let value = raw;
+            if (column.key === "workDate") value = normalizeDate(raw);
+            if (column.key === "produced" || column.key === "defects") value = normalizeNumber(raw);
+
+            // 같은 항목에 열이 둘이면(작업자 · 담당자) 값이 있는 쪽을 쓴다
+            record[column.key] = value;
+          });
+
+          // ② 열 수가 머리글과 다른 행은 '열 수 오류'로 표시하고 집계에서 뺀다
+          if (row.length !== headers.length) {
+            record.check = ROW_ERROR;
+            errorRows++;
+            records.push(record);
+            added++;
+            return;
+          }
+
+          if (hasBlank) {
+            record.check = BLANK_MARK;
+            blankRows++;
+          }
+
+          const signature = signatureOf(record);
+          if (seen.indexOf(signature) !== -1) {
+            skipped++;
+            if (hasBlank) blankRows--;
+            return;
+          }
+
+          seen.push(signature);
+          records.push(record);
+          added++;
+        });
+
+        saveRecords(records);
+        refreshAll();
+
+        const emptyColumns = CSV_OPTIONAL
+          .filter(function (c) { return c.key !== "worker"; })
+          .filter(function (c) { return headers.indexOf(c.header) === -1; })
+          .map(function (c) { return c.header; });
+
+        showCsvMessage(
+          added + "건을 목록에 추가했습니다. 중복(작업일자 + 공정)으로 건너뛴 것: " + skipped + "건." +
+          " 미입력 " + blankRows + "행 · 열 수 오류 " + errorRows + "행 (열 수 오류 행은 집계에서 뺐습니다)." +
+          (emptyColumns.length > 0 ? " 파일에 없는 열은 비워 두었습니다: " + emptyColumns.join(" · ") + "." : "") +
+          (headers.indexOf("작업자") !== -1 ? " '작업자'는 담당자 항목에 넣었습니다." : ""),
+          "ok"
+        );
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    /* ===== 화면 1 · 등록 (검증 3종) ===== */
+
+    function showMessage(text, type) {
+      const el = document.getElementById("message");
+      el.textContent = text;
+      el.className = type;
+    }
+
+    function register() {
+      // 2) 숫자 항목에 숫자가 아닌 값이 오면 거부
+      const notNumbers = NUMBER_FIELDS.filter(function (field) {
+        const el = document.getElementById(field.id);
+        // 숫자 칸에 문자를 넣으면 브라우저가 value를 빈 문자열로 만들고 badInput만 남긴다
+        if (el.validity.badInput) return true;
+        const value = el.value.trim();
+        return value !== "" && !/^\d+(\.\d+)?$/.test(value);
+      });
+
+      if (notNumbers.length > 0) {
+        const names = notNumbers.map(function (field) { return field.label; }).join(", ");
+        showMessage("숫자만 입력할 수 있습니다: " + names, "error");
+        document.getElementById(notNumbers[0].id).focus();
+        return;
+      }
+
+      // 1) 필수 항목이 비면 등록하지 않고 어느 항목인지 알린다
+      const missing = REQUIRED_FIELDS.filter(function (field) {
+        return document.getElementById(field.id).value.trim() === "";
+      });
+
+      if (missing.length > 0) {
+        const names = missing.map(function (field) { return field.label; }).join(", ");
+        showMessage("필수 항목을 입력하세요: " + names, "error");
+        document.getElementById(missing[0].id).focus();
+        return;
+      }
+
+      const defectsValue = document.getElementById("defects").value.trim();
+
+      const record = {
+        workDate: document.getElementById("workDate").value,
+        process: document.getElementById("process").value,
+        itemCode: document.getElementById("itemCode").value,
+        machine: document.getElementById("machine").value,
+        produced: document.getElementById("produced").value.trim(),
+        defects: defectsValue === "" ? "0" : defectsValue,
+        worker: document.getElementById("worker").value.trim(),
+        status: document.getElementById("status").value
+      };
+
+      const records = loadRecords();
+
+      // 3) 같은 [일자+공정+품목]이 이미 있으면 중복이라고 경고하고 등록할지 묻는다
+      const duplicated = records.some(function (saved) {
+        return saved.workDate === record.workDate &&
+               saved.process === record.process &&
+               saved.itemCode === record.itemCode;
+      });
+
+      if (duplicated) {
+        const answer = confirm(
+          "중복: 같은 [작업일자 + 공정 + 품목코드]가 이미 등록되어 있습니다.\n\n" +
+          record.workDate + " / " + record.process + " / " + record.itemCode + "\n\n" +
+          "그래도 등록할까요?"
+        );
+        if (!answer) {
+          showMessage("중복이라 등록하지 않았습니다.", "error");
+          return;
+        }
+      }
+
+      records.push(record);
+      saveRecords(records);
+      refreshAll();
+
+      document.getElementById("produced").value = "";
+      document.getElementById("defects").value = "0";
+      document.getElementById("worker").value = "";
+      showMessage("등록했습니다. [목록] 화면에서 볼 수 있습니다.", "ok");
+    }
+
+    FILTER_IDS.forEach(function (id) {
+      // 글자 칸(작업자)은 치는 대로 바로 걸리게 input도 듣는다
+      document.getElementById(id).addEventListener("change", refreshAll);
+      document.getElementById(id).addEventListener("input", refreshAll);
+    });
+
+    document.getElementById("pressLimit").addEventListener("input", function () {
+      savePressLimit();
+      refreshAll();
+    });
+
+    loadPressLimit();
+
+    document.getElementById("csvFile").addEventListener("change", function (event) {
+      const file = event.target.files[0];
+      if (file) importCsv(file);
+      event.target.value = "";
+    });
+
+    refreshAll();
+  </script>
+</body>
+</html>
